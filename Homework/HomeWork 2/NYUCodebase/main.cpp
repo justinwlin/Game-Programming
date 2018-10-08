@@ -20,6 +20,7 @@
 //GLOBAL VARIABLES
 SDL_Window* displayWindow;
 ShaderProgram program;
+
 SDL_Event event;
 
 const float width = 640;
@@ -31,6 +32,13 @@ glm::mat4 viewMatrix;
 
 float openGL_width = 1.77f;
 float openGL_height = 1.0f;
+
+//Win Condition
+int winState = 0;
+
+//Timer
+float lastFrameTicks = 0.0f;
+float elapsed = 0.0f;
 
 //CLASSES
 class Entity {
@@ -67,17 +75,16 @@ public:
     }
     
     void move(float y_input){
-        player = glm::translate(player, glm::vec3(0.0f, y_input, 0.0f));
-        y += y_input;
-        std::cout << y << std::endl;
+        y += y_input * elapsed;
+        player = glm::translate(player, glm::vec3(0.0f, y_input * elapsed, 0.0f));
     }
     
     float getWidth(){
-        return width;
+        return width * 2;
     }
     
     float getHeight(){
-        return height;
+        return height * 2;
     }
     
     float getX(){
@@ -87,6 +94,7 @@ public:
     float getY(){
         return y;
     }
+    
 private:
     glm::mat4 player;
 };
@@ -95,8 +103,9 @@ class Ball : public Entity{
 public:
     Ball(){
         player = glm::mat4(1.0f);
-        x_velocity = -0.05f;
-        y_velocity = 0.0f;
+        initialState = player;
+        x_velocity = 0.9f;
+        y_velocity = 0.9f;
 
         height = 0.05;
         width = 0.05;
@@ -112,6 +121,14 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
+    void resetBall(){
+        player = initialState;
+        x = 0;
+        y = 0;
+        x_velocity = 0.9f;
+        y_velocity = 0.9f;
+    }
+    
     void translate(float x_input, float y_input){
         x += x_input;
         y += y_input;
@@ -119,15 +136,14 @@ public:
     }
     
     void move(float y_input){
-        player = glm::translate(player, glm::vec3(0.0f, y_input, 0.0f));
-        y += y_input;
+        y += y_input * elapsed;
+        player = glm::translate(player, glm::vec3(0.0f, y_input * elapsed, 0.0f));
     }
     
     void updateBall(){
-        x += x_velocity;
-        y += y_velocity;
-        
-        player = glm::translate(player, glm::vec3(x_velocity, y_velocity, 0.0f));
+        x += x_velocity * elapsed;
+        y += y_velocity * elapsed;
+        player = glm::translate(player, glm::vec3(x_velocity * elapsed, y_velocity * elapsed, 0.0f));
         
     }
     
@@ -136,12 +152,16 @@ public:
         y_velocity = -1 * y_velocity;
     }
     
+    void reverseYVelocity(){
+        y_velocity = -1 * y_velocity;
+    }
+    
     float getWidth(){
-        return width;
+        return width * 2;
     }
     
     float getHeight(){
-        return height;
+        return height * 2;
     }
     
     float getX(){
@@ -151,6 +171,8 @@ public:
     float getY(){
         return y;
     }
+private:
+    glm::mat4 initialState;
 };
 
 
@@ -163,11 +185,34 @@ bool collide(Ball* ball, Player* player){
     float x_distance = abs(ball->getX() - player->getX()) - (ball->getWidth() + player->getWidth())/2;
     float y_distance = abs(ball->getY() - player->getY()) - (ball->getHeight() + player->getHeight())/2;
     std::cout << "x distance: " + std::to_string(x_distance) + " ; y distance : " + std::to_string(y_distance)<< std::endl;
-    if(x_distance < 0 && y_distance < ball->getWidth() * 2.5){
+    if(x_distance < 0 && y_distance < ball->getWidth()){
         return true;
     }
     return false;
 }
+
+void clamp(Ball* ball){
+    if(ball->getY() + ball->getWidth()/2 > openGL_height || ball->getY() + ball->getWidth()/2 < openGL_height * -1){
+        ball->reverseYVelocity();
+    }
+}
+
+int winCondition(Ball *ball){
+    //1 = left side wins
+    //0 = no one
+    // -1 = right wins
+    if( ball->getX() > openGL_width + ball->getWidth()){ //goes off the right side; left wins
+        return 1;
+    }
+    else if(ball->getX() < -1 * openGL_width - ball->getWidth()){
+        //right wins
+        return -1;
+    }
+    else{
+        return 0;
+    }
+}
+
 
 //METHODS
 
@@ -203,38 +248,73 @@ void ProcessEvents(){
         else if(event.type == SDL_KEYDOWN) {
             //Player 1
             if(event.key.keysym.scancode == SDL_SCANCODE_W) {
-                player1->move(0.1);
+                player1->move(5.0f);
             }
             if(event.key.keysym.scancode == SDL_SCANCODE_S) {
-                player1->move(-0.1);
+                player1->move(-5.0f);
             }
             
             //Player 2
             if(event.key.keysym.scancode == SDL_SCANCODE_DOWN) {
-                player2->move(-0.1);
+                player2->move(-5.0f);
             }
             if(event.key.keysym.scancode == SDL_SCANCODE_UP) {
-                player2->move(0.1);
+                player2->move(5.0f);
             }
         }
     }
 }
 
 void Update(){
+    //Timer:
+    float ticks = (float)SDL_GetTicks()/1000.0f;
+    elapsed = ticks - lastFrameTicks;
+    lastFrameTicks = ticks;
+    
+    std::cout << elapsed << std::endl;
+    
     //Ball Update
     ball->updateBall();
     //Collision Detection
     if(collide(ball, player1) || collide(ball, player2)){
         ball->reverseVelocity();
     }
+    //Clamp
+    clamp(ball);
+    //Check win Condition
+    if(winCondition(ball) == -1 || winCondition(ball) == 1){
+        winState = winCondition(ball);
+        ball->resetBall();
+    }
     //Clear Buffer
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Renderer(){
-    player1->Draw(program);
-    player2->Draw(program);
-    ball->Draw(program);
+    //1 = left side wins
+    //0 = no one
+    // -1 = right wins
+    
+    if(winState == 0){
+        player1->Draw(program);
+        player2->Draw(program);
+        ball->Draw(program);
+    }
+    if(winState == 1){//left wins
+        program.SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+        player2->Draw(program);
+        ball->Draw(program);
+        program.SetColor(0.0f, 1.0f, 0.0f, 1.0f);
+        player1->Draw(program);
+    }
+    else if(winState == -1){//left wins
+        program.SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+        player1->Draw(program);
+        ball->Draw(program);
+        program.SetColor(0.0f, 1.0f, 0.0f, 1.0f);
+        player2->Draw(program);
+    }
+
     SDL_GL_SwapWindow(displayWindow);
 }
 
