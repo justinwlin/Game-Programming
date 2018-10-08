@@ -79,6 +79,14 @@ public:
     float getHeight(){
         return height;
     }
+    
+    float getX(){
+        return x;
+    }
+    
+    float getY(){
+        return y;
+    }
 private:
     glm::mat4 player;
 };
@@ -87,7 +95,7 @@ class Ball : public Entity{
 public:
     Ball(){
         player = glm::mat4(1.0f);
-        x_velocity = -0.1f;
+        x_velocity = -0.05f;
         y_velocity = 0.0f;
 
         height = 0.05;
@@ -115,12 +123,33 @@ public:
         y += y_input;
     }
     
+    void updateBall(){
+        x += x_velocity;
+        y += y_velocity;
+        
+        player = glm::translate(player, glm::vec3(x_velocity, y_velocity, 0.0f));
+        
+    }
+    
+    void reverseVelocity(){
+        x_velocity = -1*x_velocity;
+        y_velocity = -1 * y_velocity;
+    }
+    
     float getWidth(){
         return width;
     }
     
     float getHeight(){
         return height;
+    }
+    
+    float getX(){
+        return x;
+    }
+    
+    float getY(){
+        return y;
     }
 };
 
@@ -129,6 +158,16 @@ public:
 Player* player1 = new Player();
 Player* player2 = new Player();
 Ball* ball = new Ball();
+
+bool collide(Ball* ball, Player* player){
+    float x_distance = abs(ball->getX() - player->getX()) - (ball->getWidth() + player->getWidth())/2;
+    float y_distance = abs(ball->getY() - player->getY()) - (ball->getHeight() + player->getHeight())/2;
+    std::cout << "x distance: " + std::to_string(x_distance) + " ; y distance : " + std::to_string(y_distance)<< std::endl;
+    if(x_distance < 0 && y_distance < ball->getWidth() * 2.5){
+        return true;
+    }
+    return false;
+}
 
 //METHODS
 
@@ -183,9 +222,11 @@ void ProcessEvents(){
 
 void Update(){
     //Ball Update
-    
+    ball->updateBall();
     //Collision Detection
-
+    if(collide(ball, player1) || collide(ball, player2)){
+        ball->reverseVelocity();
+    }
     //Clear Buffer
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -196,6 +237,7 @@ void Renderer(){
     ball->Draw(program);
     SDL_GL_SwapWindow(displayWindow);
 }
+
 
 int main(int argc, char *argv[])
 {
