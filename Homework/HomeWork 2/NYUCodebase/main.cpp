@@ -28,9 +28,6 @@ bool loop = false;
 glm::mat4 projectionMatrix;
 glm::mat4 viewMatrix;
 
-glm::mat4 player1;
-glm::mat4 player2;
-
 class Entity {
 public:
 virtual void Draw(ShaderProgram &p) = 0;
@@ -46,13 +43,50 @@ virtual void Draw(ShaderProgram &p) = 0;
 };
 
 class Player : public Entity{
+public:
+    Player(): player(glm::mat4(1.0f)){}
     void Draw(ShaderProgram &p){
+        program.SetModelMatrix(player);
+        program.SetProjectionMatrix(projectionMatrix);
+        program.SetViewMatrix(viewMatrix);
         float vertices[] = {0,-0.15,0.15,-0.15,0.15,0.75,0,0.75,0.15,0.75,0,-0.15};
         glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
         glEnableVertexAttribArray(program.positionAttribute);
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
+    
+    void translate(float x, float y, float z){
+        player = glm::translate(player, glm::vec3(x, y, z));
+    }
+private:
+    glm::mat4 player;
 };
+
+class Ball : public Entity{
+public:
+    Ball(): player(glm::mat4(1.0f)){
+        player = glm::scale(player, glm::vec3(0.1f, 0.1f, 1.0f));
+    }
+    void Draw(ShaderProgram &p){
+        program.SetModelMatrix(player);
+        program.SetProjectionMatrix(projectionMatrix);
+        program.SetViewMatrix(viewMatrix);
+        float vertices[] = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
+        glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+        glEnableVertexAttribArray(program.positionAttribute);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+    void translate(float x, float y, float z){
+        player = glm::translate(player, glm::vec3(x, y, z));
+    }
+private:
+    glm::mat4 player;
+};
+
+
+Player* player1 = new Player();
+Player* player2 = new Player();
+Ball* ball = new Ball();
 
 void Startup(){
     SDL_Init(SDL_INIT_VIDEO);
@@ -64,30 +98,11 @@ void Startup(){
     program.Load(RESOURCE_FOLDER "vertex.glsl", RESOURCE_FOLDER "fragment.glsl");
 
     projectionMatrix = glm::mat4(1.0f);
-    player1 = glm::mat4(1.0f);
     viewMatrix = glm::mat4(1.0f);
     projectionMatrix = glm::ortho(-1.777f, 1.777f, -1.0f, 1.0f, -1.0f, 1.0f);
     
-    //Initial Setup:
-    player1 = glm::translate(player1, glm::vec3(-1.5f, -0.3f, 0.0f));
-    program.SetModelMatrix(player1);
-    program.SetProjectionMatrix(projectionMatrix);
-    program.SetViewMatrix(viewMatrix);
-    float vertices[] = {0,-0.15,0.15,-0.15,0.15,0.75,0,0.75,0.15,0.75,0,-0.15};
-    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(program.positionAttribute);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    
-    player2 = glm::mat4(1.0f);
-    player2 = glm::translate(player2, glm::vec3(1.5f, -0.3f, 0.0f));
-    program.SetModelMatrix(player2);
-    program.SetProjectionMatrix(projectionMatrix);
-    program.SetViewMatrix(viewMatrix);
-    //First object
-    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(program.positionAttribute);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-
+    player1->translate(-1.5, -0.3, 0);
+    player2->translate(1.5, -0.3, 0);
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -107,32 +122,12 @@ void ProcessEvents(){
 
 void Update(){
     glClear(GL_COLOR_BUFFER_BIT);
-
-
 }
 
 void Renderer(){
-    program.SetModelMatrix(player1);
-    program.SetProjectionMatrix(projectionMatrix);
-    program.SetViewMatrix(viewMatrix);
-    
-    //Player 1
-    float vertices[] = {0,-0.15,0.15,-0.15,0.15,0.75,0,0.75,0.15,0.75,0,-0.15};
-    //Drawing
-    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(program.positionAttribute);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    
-    //Player 2
-    program.SetModelMatrix(player2);
-    program.SetProjectionMatrix(projectionMatrix);
-    program.SetViewMatrix(viewMatrix);
-    //Drawing
-    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(program.positionAttribute);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    
-    //Display Window
+    player1->Draw(program);
+    player2->Draw(program);
+    ball->Draw(program);
     SDL_GL_SwapWindow(displayWindow);
 }
 
