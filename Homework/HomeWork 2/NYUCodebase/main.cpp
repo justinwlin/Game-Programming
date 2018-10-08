@@ -26,8 +26,33 @@ const float height = 360;
 bool loop = false;
 
 glm::mat4 projectionMatrix;
-glm::mat4 modelMatrix;
 glm::mat4 viewMatrix;
+
+glm::mat4 player1;
+glm::mat4 player2;
+
+class Entity {
+public:
+virtual void Draw(ShaderProgram &p) = 0;
+    float x;
+    float y;
+    float rotation;
+    int textureID;
+    float width;
+    float height;
+    float velocity;
+    float direction_x;
+    float direction_y;
+};
+
+class Player : public Entity{
+    void Draw(ShaderProgram &p){
+        float vertices[] = {0,-0.15,0.15,-0.15,0.15,0.75,0,0.75,0.15,0.75,0,-0.15};
+        glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+        glEnableVertexAttribArray(program.positionAttribute);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+};
 
 void Startup(){
     SDL_Init(SDL_INIT_VIDEO);
@@ -37,19 +62,39 @@ void Startup(){
     glViewport(0, 0, width, height);
 
     program.Load(RESOURCE_FOLDER "vertex.glsl", RESOURCE_FOLDER "fragment.glsl");
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glUseProgram(program.programID);
-    
+
     projectionMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::mat4(1.0f);
+    player1 = glm::mat4(1.0f);
     viewMatrix = glm::mat4(1.0f);
     projectionMatrix = glm::ortho(-1.777f, 1.777f, -1.0f, 1.0f, -1.0f, 1.0f);
     
+    //Initial Setup:
+    player1 = glm::translate(player1, glm::vec3(-1.5f, -0.3f, 0.0f));
+    program.SetModelMatrix(player1);
+    program.SetProjectionMatrix(projectionMatrix);
+    program.SetViewMatrix(viewMatrix);
+    float vertices[] = {0,-0.15,0.15,-0.15,0.15,0.75,0,0.75,0.15,0.75,0,-0.15};
+    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+    glEnableVertexAttribArray(program.positionAttribute);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    player2 = glm::mat4(1.0f);
+    player2 = glm::translate(player2, glm::vec3(1.5f, -0.3f, 0.0f));
+    program.SetModelMatrix(player2);
+    program.SetProjectionMatrix(projectionMatrix);
+    program.SetViewMatrix(viewMatrix);
+    //First object
+    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+    glEnableVertexAttribArray(program.positionAttribute);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glUseProgram(program.programID);
     #ifdef _WINDOWS
         glewInit();
     #endif
-    
 }
 
 void ProcessEvents(){
@@ -61,24 +106,34 @@ void ProcessEvents(){
 }
 
 void Update(){
-    program.SetModelMatrix(modelMatrix);
-    program.SetProjectionMatrix(projectionMatrix);
-    program.SetViewMatrix(viewMatrix);
-    
-    //Square
-    float vertices[] = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
-    //First object
-    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
-    glEnableVertexAttribArray(program.positionAttribute);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+
 }
 
 void Renderer(){
-    float angle = 10.0f * (3.1415926f / 180.0f);
-    modelMatrix = glm::rotate(modelMatrix, angle, glm::vec3(0.0f, 0.0f, 1.0f));
-
+    program.SetModelMatrix(player1);
+    program.SetProjectionMatrix(projectionMatrix);
+    program.SetViewMatrix(viewMatrix);
+    
+    //Player 1
+    float vertices[] = {0,-0.15,0.15,-0.15,0.15,0.75,0,0.75,0.15,0.75,0,-0.15};
+    //Drawing
+    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+    glEnableVertexAttribArray(program.positionAttribute);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    //Player 2
+    program.SetModelMatrix(player2);
+    program.SetProjectionMatrix(projectionMatrix);
+    program.SetViewMatrix(viewMatrix);
+    //Drawing
+    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+    glEnableVertexAttribArray(program.positionAttribute);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    //Display Window
     SDL_GL_SwapWindow(displayWindow);
-    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 int main(int argc, char *argv[])
@@ -89,7 +144,6 @@ int main(int argc, char *argv[])
         Update();
         Renderer();
     }
-    
     SDL_Quit();
     return 0;
 }
