@@ -192,7 +192,7 @@ bool collide(Ball* ball, Player* player){
 }
 
 void clamp(Ball* ball){
-    if(ball->getY() + ball->getWidth()/2 > openGL_height || ball->getY() + ball->getWidth()/2 < openGL_height * -1){
+    if(ball->getY() + ball->getWidth()/2 > openGL_height || ball->getY() - ball->getWidth()/2 < openGL_height * -1){
         ball->reverseYVelocity();
     }
 }
