@@ -33,24 +33,25 @@ glm::mat4 viewMatrix;
 float openGL_width = 1.77f;
 float openGL_height = 1.0f;
 
-//Win Condition
-int winState = 0;
+float vertices[] = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
+float texCoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0};
 
-//Timer
-float lastFrameTicks = 0.0f;
-float elapsed = 0.0f;
-
+GLuint defaultTexture;
 
 class Entity{
 public:
     void Draw(ShaderProgram &p){
-        program.SetModelMatrix(player);
-        program.SetProjectionMatrix(projectionMatrix);
-        program.SetViewMatrix(viewMatrix);
-        float vertices[] = {-width + x,-height+y,width+x,-height+y,width+x,height+y,-width+x,-height+y,-width+x,height+y,width+x,height+y};
-        glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+        glm::mat4 newMatrix = glm::mat4(1.0f);
+        newMatrix = glm::translate(newMatrix, glm::vec3(x, y, 1.0f));
+        newMatrix = glm::scale(newMatrix, glm::vec3(x_scale, y_scale, 1.0f));
+        p.SetModelMatrix(newMatrix);
+        
+        glBindTexture(GL_TEXTURE_2D, entity_texture);
         glEnableVertexAttribArray(program.positionAttribute);
+        glEnableVertexAttribArray(program.texCoordAttribute);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDisableVertexAttribArray(program.positionAttribute);
+        glDisableVertexAttribArray(program.texCoordAttribute);
     }
     
     void move(){
@@ -60,13 +61,13 @@ public:
     
     glm::mat4 player = glm::mat4(1.0f);
     
-    float x;
-    float y;
-    float x_scale;
-    float y_scale;
+    float x = .1;
+    float y = .1;
+    float x_scale = 1;
+    float y_scale = .1;
     float rotation;
     
-    int textureID;
+    GLuint entity_texture;
     
     float width = 0.5;
     float height = 0.5;
@@ -77,6 +78,25 @@ public:
     
     
 };
+
+//function to load textures
+GLuint LoadTexture(const char *filePath) {
+    int w,h,comp;
+    unsigned char* image = stbi_load(filePath, &w, &h, &comp, STBI_rgb_alpha);
+    if(image == NULL) {
+        std::cout << "Unable to load image. Make sure the path is correct\n";
+        assert(false);
+    }
+    GLuint retTexture;
+    glGenTextures(1, &retTexture);
+    glBindTexture(GL_TEXTURE_2D, retTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    stbi_image_free(image);
+    
+    return retTexture;
+}
 
 
 //Entities
@@ -91,16 +111,23 @@ void Startup(){
     SDL_GLContext context = SDL_GL_CreateContext(displayWindow);
     SDL_GL_MakeCurrent(displayWindow, context);
     glViewport(0, 0, width, height);
-    
-    program.Load(RESOURCE_FOLDER "vertex.glsl", RESOURCE_FOLDER "fragment.glsl");
-    
+    program.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
     projectionMatrix = glm::mat4(1.0f);
     viewMatrix = glm::mat4(1.0f);
     projectionMatrix = glm::ortho(-openGL_width, openGL_width, -openGL_height, openGL_height, -openGL_height, openGL_height);
-
+    program.SetProjectionMatrix(projectionMatrix);
+    program.SetViewMatrix(viewMatrix);
+    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertices);
+    glVertexAttribPointer(program.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoords);
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(program.programID);
+    
+    //Loading Textures
+    defaultTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
+    player.entity_texture = defaultTexture;
+    
 #ifdef _WINDOWS
     glewInit();
 #endif
