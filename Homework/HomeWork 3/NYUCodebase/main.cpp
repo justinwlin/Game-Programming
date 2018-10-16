@@ -53,6 +53,11 @@ public:
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
     
+    void move(){
+        x += .1;
+        y += .1;
+    }
+    
     glm::mat4 player = glm::mat4(1.0f);
     
     float x;
@@ -105,6 +110,12 @@ void ProcessEvents(){
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
             loop = true;
+        }
+        else if(event.type == SDL_KEYDOWN) {
+            //Player 1
+            if(event.key.keysym.scancode == SDL_SCANCODE_W) {
+                player.move();
+            }
         }
     }
 }
