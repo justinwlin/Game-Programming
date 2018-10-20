@@ -46,6 +46,7 @@ float texCoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0}
  Textures
  ===========================
  */
+GLuint spriteSheetTexture;
 GLuint defaultTexture;
 GLuint playerTexture;
 GLuint enemyTexture;
@@ -72,25 +73,6 @@ GLuint LoadTexture(const char *filePath) {
     stbi_image_free(image);
     
     return retTexture;
-}
-
-void DrawSpriteSheetSprite(ShaderProgram &program, int index, int spriteCountX,
-                           int spriteCountY) {
-    float u = (float)(((int)index) % spriteCountX) / (float) spriteCountX;
-    float v = (float)(((int)index) / spriteCountX) / (float) spriteCountY;
-    float spriteWidth = 1.0/(float)spriteCountX;
-    float spriteHeight = 1.0/(float)spriteCountY;
-    float texCoords[] = {
-        u, v+spriteHeight,
-        u+spriteWidth, v,
-        u, v,
-        u+spriteWidth, v,
-        u, v+spriteHeight,
-        u+spriteWidth, v+spriteHeight
-    };
-    float vertices[] = {-0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,  -0.5f,
-        -0.5f, 0.5f, -0.5f};
-    // draw this data
 }
 
 void DrawText(ShaderProgram* program, int fontTexture, std::string text, float size, float spacing) {
@@ -140,14 +122,38 @@ void DrawText(ShaderProgram* program, int fontTexture, std::string text, float s
  */
 class Entity{
 public:
+    float u;
+    float v;
+    int type;
+    float x = 0;
+    float y = 0;
+    float x_scale;
+    float y_scale;
+    float rotation;
+    
+    GLuint entity_texture;
+    
+    float width = 1;
+    float height = 1;
+    
+    float velocity;
+    float direction_x;
+    float direction_y;
+    float size = 1.0f;
+    
     Entity(){}
     
     Entity(int input_type){
         type = input_type;
         if(type == 1){//Player
-            x_scale = .25;
-            y_scale = .1;
+            x_scale = 1;
+            y_scale = 1;
             y = -.8;
+            
+            u = 224.0f / 1024.0f;
+            v = 832.0f / 1024.0f;
+            width = 99.0f / 1024.0f;
+            height = 75.0f / 1024.0f;
             entity_texture = defaultTexture;
         }
         else if(type == 2){//Enemy
@@ -163,16 +169,39 @@ public:
     };
     
     void Draw(ShaderProgram &p){
-        loadTexture();
         glm::mat4 newMatrix = glm::mat4(1.0f);
         newMatrix = glm::translate(newMatrix, glm::vec3(x, y, 1.0f));
         newMatrix = glm::scale(newMatrix, glm::vec3(x_scale, y_scale, 1.0f));
         p.SetModelMatrix(newMatrix);
 
-        glBindTexture(GL_TEXTURE_2D, entity_texture);
+        std::vector<float> vertexData;
+        std::vector<float> texCoordData;
+        float texture_x = u;
+        float texture_y = v;
+        vertexData.insert(vertexData.end(), {
+            (-0.1f * size), 0.1f * size,
+            (-0.1f * size), -0.1f * size,
+            (0.1f * size), 0.1f * size,
+            (0.1f * size), -0.1f * size,
+            (0.1f * size), 0.1f * size,
+            (-0.1f * size), -0.1f * size,
+        });
+        texCoordData.insert(texCoordData.end(), {
+            texture_x, texture_y,
+            texture_x, texture_y + height,
+            texture_x + width, texture_y,
+            texture_x + width, texture_y + height,
+            texture_x + width, texture_y,
+            texture_x, texture_y + height,
+        });
+        
+        glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
         glEnableVertexAttribArray(program.positionAttribute);
+        glVertexAttribPointer(program.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
         glEnableVertexAttribArray(program.texCoordAttribute);
+        glBindTexture(GL_TEXTURE_2D, spriteSheetTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        
         glDisableVertexAttribArray(program.positionAttribute);
         glDisableVertexAttribArray(program.texCoordAttribute);
     }
@@ -189,21 +218,7 @@ public:
     
     glm::mat4 player = glm::mat4(1.0f);
     
-    int type;
-    float x = 0;
-    float y = 0;
-    float x_scale;
-    float y_scale;
-    float rotation;
-    
-    GLuint entity_texture;
-    
-    float width = 1;
-    float height = 1;
-    
-    float velocity;
-    float direction_x;
-    float direction_y;
+
 };
 
 /*
@@ -322,6 +337,7 @@ void Startup(){
      Load Texture
      ===========================
      */
+    spriteSheetTexture = LoadTexture(RESOURCE_FOLDER"sheet.png");
     defaultTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
     playerTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
     enemyTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
