@@ -1,6 +1,10 @@
 #ifdef _WINDOWS
 #include <GL/glew.h>
 #endif
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <vector>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_image.h>
@@ -17,69 +21,41 @@
 #define RESOURCE_FOLDER "NYUCodebase.app/Contents/Resources/"
 #endif
 
-//GLOBAL VARIABLES
+
+/*
+ ===========================
+ Global Variables
+ ===========================
+ */
 SDL_Window* displayWindow;
 ShaderProgram program;
-
 SDL_Event event;
 
 const float width = 640;
 const float height = 360;
 bool loop = false;
-
 glm::mat4 projectionMatrix;
 glm::mat4 viewMatrix;
-
 float openGL_width = 1.77f;
 float openGL_height = 1.0f;
-
 float vertices[] = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
 float texCoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0};
 
+/*
+ ===========================
+ Textures
+ ===========================
+ */
 GLuint defaultTexture;
+GLuint playerTexture;
+GLuint enemyTexture;
+GLuint bulletTexture;
 
-class Entity{
-public:
-    void Draw(ShaderProgram &p){
-        glm::mat4 newMatrix = glm::mat4(1.0f);
-        newMatrix = glm::translate(newMatrix, glm::vec3(x, y, 1.0f));
-        newMatrix = glm::scale(newMatrix, glm::vec3(x_scale, y_scale, 1.0f));
-        p.SetModelMatrix(newMatrix);
-        
-        glBindTexture(GL_TEXTURE_2D, entity_texture);
-        glEnableVertexAttribArray(program.positionAttribute);
-        glEnableVertexAttribArray(program.texCoordAttribute);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDisableVertexAttribArray(program.positionAttribute);
-        glDisableVertexAttribArray(program.texCoordAttribute);
-    }
-    
-    void move(){
-        x += .1;
-        y += .1;
-    }
-    
-    glm::mat4 player = glm::mat4(1.0f);
-    
-    float x = .1;
-    float y = .1;
-    float x_scale = 1;
-    float y_scale = .1;
-    float rotation;
-    
-    GLuint entity_texture;
-    
-    float width = 0.5;
-    float height = 0.5;
-    
-    float velocity;
-    float direction_x;
-    float direction_y;
-    
-    
-};
-
-//function to load textures
+/*
+ ===========================
+ Load Texture
+ ===========================
+ */
 GLuint LoadTexture(const char *filePath) {
     int w,h,comp;
     unsigned char* image = stbi_load(filePath, &w, &h, &comp, STBI_rgb_alpha);
@@ -98,12 +74,222 @@ GLuint LoadTexture(const char *filePath) {
     return retTexture;
 }
 
+void DrawSpriteSheetSprite(ShaderProgram &program, int index, int spriteCountX,
+                           int spriteCountY) {
+    float u = (float)(((int)index) % spriteCountX) / (float) spriteCountX;
+    float v = (float)(((int)index) / spriteCountX) / (float) spriteCountY;
+    float spriteWidth = 1.0/(float)spriteCountX;
+    float spriteHeight = 1.0/(float)spriteCountY;
+    float texCoords[] = {
+        u, v+spriteHeight,
+        u+spriteWidth, v,
+        u, v,
+        u+spriteWidth, v,
+        u, v+spriteHeight,
+        u+spriteWidth, v+spriteHeight
+    };
+    float vertices[] = {-0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f,  -0.5f,
+        -0.5f, 0.5f, -0.5f};
+    // draw this data
+}
 
-//Entities
-Entity player;
+void DrawText(ShaderProgram* program, int fontTexture, std::string text, float size, float spacing) {
+    float texture_size = 1.0 / 16.0f;
+    std::vector<float> vertexData;
+    std::vector<float> texCoordData;
+    
+    for (size_t i = 0; i < text.size(); i++) {
+        float texture_x = (float)(((int)text[i]) % 16) / 16.0f;
+        float texture_y = (float)(((int)text[i]) / 16) / 16.0f;
+        vertexData.insert(vertexData.end(), {
+            ((size + spacing) * i) + (-0.5f * size), 0.5f * size,
+            ((size + spacing) * i) + (-0.5f * size), -0.5f * size,
+            ((size + spacing) * i) + (0.5f * size), 0.5f * size,
+            ((size + spacing) * i) + (0.5f * size), -0.5f * size,
+            ((size + spacing) * i) + (0.5f * size), 0.5f * size,
+            ((size + spacing) * i) + (-0.5f * size), -0.5f * size,
+        });
+        texCoordData.insert(texCoordData.end(), {
+            texture_x, texture_y,
+            texture_x, texture_y + texture_size,
+            texture_x + texture_size, texture_y,
+            texture_x + texture_size, texture_y + texture_size,
+            texture_x + texture_size, texture_y,
+            texture_x, texture_y + texture_size,
+        });
+    }
+    glUseProgram(program->programID);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
+    glEnableVertexAttribArray(program->positionAttribute);
+    glVertexAttribPointer(program->texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
+    glEnableVertexAttribArray(program->texCoordAttribute);
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
+    glDrawArrays(GL_TRIANGLES, 0, text.size() * 6);
+    
+    glDisableVertexAttribArray(program->positionAttribute);
+    glDisableVertexAttribArray(program->texCoordAttribute);
+}
+
+/*
+ ===========================
+ Entity
+ ===========================
+ */
+class Entity{
+public:
+    Entity(){}
+    
+    Entity(int input_type){
+        type = input_type;
+        if(type == 1){//Player
+            x_scale = .25;
+            y_scale = .1;
+            y = -.8;
+            entity_texture = defaultTexture;
+        }
+        else if(type == 2){//Enemy
+            width = 1;
+            height = 1;
+            x_scale = .25;
+            y_scale = .1;
+            entity_texture = enemyTexture;
+        }
+        else{//Bullet
+        }
+
+    };
+    
+    void Draw(ShaderProgram &p){
+        loadTexture();
+        glm::mat4 newMatrix = glm::mat4(1.0f);
+        newMatrix = glm::translate(newMatrix, glm::vec3(x, y, 1.0f));
+        newMatrix = glm::scale(newMatrix, glm::vec3(x_scale, y_scale, 1.0f));
+        p.SetModelMatrix(newMatrix);
+
+        glBindTexture(GL_TEXTURE_2D, entity_texture);
+        glEnableVertexAttribArray(program.positionAttribute);
+        glEnableVertexAttribArray(program.texCoordAttribute);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDisableVertexAttribArray(program.positionAttribute);
+        glDisableVertexAttribArray(program.texCoordAttribute);
+    }
+    
+    void loadTexture(){
+        if(type == 1){entity_texture = playerTexture;}
+        else if(type == 2){entity_texture = enemyTexture;}
+        else{entity_texture = bulletTexture;}
+    }
+    
+    void moveX(float x_input){
+        x += x_input;
+    }
+    
+    glm::mat4 player = glm::mat4(1.0f);
+    
+    int type;
+    float x = 0;
+    float y = 0;
+    float x_scale;
+    float y_scale;
+    float rotation;
+    
+    GLuint entity_texture;
+    
+    float width = 1;
+    float height = 1;
+    
+    float velocity;
+    float direction_x;
+    float direction_y;
+};
+
+/*
+ ===========================
+ Main Menu
+ ===========================
+ */
+class MainMenu {
+public:
+    void Render(ShaderProgram &p) {
+        
+    }
+    void Update() {
+    }
+    void Process() {
+    }
+};
+
+/*
+ ===========================
+ Game Level
+ ===========================
+ */
+class GameLevel {
+public:
+    GameLevel(){
+        float width = -1.3f;
+        for(int i = 0; i < 10; i++){
+            Entity tempEntity = *new Entity(2);
+            tempEntity.x += width;
+            std::cout << tempEntity.x << std::endl;
+            enemies.push_back(tempEntity);
+            width += tempEntity.x_scale + 0.05;
+        }
+    };
+    
+    void Render(ShaderProgram &p) {
+        for(int i = 0; i < 10; i++){
+            enemies[i].Draw(p);
+        }
+        player.Draw(p);
+    }
+    void Update() {
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    void Process() {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
+                loop = true;
+            }
+            if(event.key.keysym.scancode == SDL_SCANCODE_D) {
+                player.moveX(0.1f);
+            }
+            if(event.key.keysym.scancode == SDL_SCANCODE_A) {
+                player.moveX(-0.1f);
+            }
+        }
+    }
+    std::vector<Entity> enemies;
+    Entity player = Entity(1);
+    int score;
+};
 
 
-//METHODS
+
+/*
+ ===========================
+ Functions
+ ===========================
+ */
+
+/*
+ ===========================
+ Global Variables
+ ===========================
+ */
+enum GameMode { STATE_MAIN_MENU, STATE_GAME_LEVEL};
+GameMode mode;
+MainMenu mainMenu;
+GameLevel gameLevel;
+
+/*
+ ===========================
+ Methods
+ ===========================
+ */
 
 void Startup(){
     SDL_Init(SDL_INIT_VIDEO);
@@ -124,9 +310,29 @@ void Startup(){
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glUseProgram(program.programID);
     
-    //Loading Textures
+    /*
+     ===========================
+     Initialize Entities
+     ===========================
+     */
+    gameLevel.player.width = 0.1f;
+    
+    /*
+     ===========================
+     Load Texture
+     ===========================
+     */
     defaultTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
-    player.entity_texture = defaultTexture;
+    playerTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
+    enemyTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
+    bulletTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
+
+    /*
+     ===========================
+     Set up GameStates
+     ===========================
+     */
+    mode = STATE_GAME_LEVEL;
     
 #ifdef _WINDOWS
     glewInit();
@@ -134,25 +340,39 @@ void Startup(){
 }
 
 void ProcessEvents(){
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
-            loop = true;
-        }
-        else if(event.type == SDL_KEYDOWN) {
-            //Player 1
-            if(event.key.keysym.scancode == SDL_SCANCODE_W) {
-                player.move();
-            }
-        }
+    switch(mode) {
+        case STATE_MAIN_MENU:
+            mainMenu.Process();
+            break;
+        case STATE_GAME_LEVEL:
+            gameLevel.Process();
+            break;
     }
 }
 
+
+
 void Update(){
+    switch(mode) {
+        case STATE_MAIN_MENU:
+            mainMenu.Update();
+            break;
+        case STATE_GAME_LEVEL:
+            gameLevel.Update();
+            break;
+    }
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Renderer(){
-    player.Draw(program);
+    switch(mode) {
+        case STATE_MAIN_MENU:
+            mainMenu.Render(program);
+            break;
+        case STATE_GAME_LEVEL:
+            gameLevel.Render(program);
+            break;
+    }
     SDL_GL_SwapWindow(displayWindow);
 }
 
