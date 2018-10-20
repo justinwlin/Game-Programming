@@ -47,10 +47,6 @@ float texCoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0}
  ===========================
  */
 GLuint spriteSheetTexture;
-GLuint defaultTexture;
-GLuint playerTexture;
-GLuint enemyTexture;
-GLuint bulletTexture;
 
 /*
  ===========================
@@ -154,14 +150,15 @@ public:
             v = 832.0f / 1024.0f;
             width = 99.0f / 1024.0f;
             height = 75.0f / 1024.0f;
-            entity_texture = defaultTexture;
         }
         else if(type == 2){//Enemy
-            width = 1;
-            height = 1;
-            x_scale = .25;
-            y_scale = .1;
-            entity_texture = enemyTexture;
+            x_scale = 1;
+            y_scale = 1;
+            
+            u = 425.0f / 1024.0f;
+            v = 552.0f / 1024.0f;
+            width = 93.0f / 1024.0f;
+            height = 84.0f / 1024.0f;
         }
         else{//Bullet
         }
@@ -206,12 +203,6 @@ public:
         glDisableVertexAttribArray(program.texCoordAttribute);
     }
     
-    void loadTexture(){
-        if(type == 1){entity_texture = playerTexture;}
-        else if(type == 2){entity_texture = enemyTexture;}
-        else{entity_texture = bulletTexture;}
-    }
-    
     void moveX(float x_input){
         x += x_input;
     }
@@ -246,12 +237,13 @@ class GameLevel {
 public:
     GameLevel(){
         float width = -1.3f;
+        float spacing = 3;
         for(int i = 0; i < 10; i++){
             Entity tempEntity = *new Entity(2);
             tempEntity.x += width;
             std::cout << tempEntity.x << std::endl;
             enemies.push_back(tempEntity);
-            width += tempEntity.x_scale + 0.05;
+            width += tempEntity.width *spacing;
         }
     };
     
@@ -338,11 +330,6 @@ void Startup(){
      ===========================
      */
     spriteSheetTexture = LoadTexture(RESOURCE_FOLDER"sheet.png");
-    defaultTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
-    playerTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
-    enemyTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
-    bulletTexture = LoadTexture(RESOURCE_FOLDER"ball.png");
-
     /*
      ===========================
      Set up GameStates
