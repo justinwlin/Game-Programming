@@ -31,8 +31,8 @@ SDL_Window* displayWindow;
 ShaderProgram program;
 SDL_Event event;
 
-const float width = 640;
-const float height = 360;
+const float WIDTH = 640;
+const float HEIGHT = 360;
 bool loop = false;
 glm::mat4 projectionMatrix;
 glm::mat4 viewMatrix;
@@ -41,6 +41,8 @@ float openGL_height = 1.0f;
 float vertices[] = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
 float texCoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0};
 
+float lastFrameTicks = 0.0f;
+float elapsed = 0.0f;
 /*
  ===========================
  Textures
@@ -123,8 +125,6 @@ public:
     int type;
     float x = 0;
     float y = 0;
-    float x_scale;
-    float y_scale;
     float rotation;
     
     GLuint entity_texture;
@@ -132,35 +132,45 @@ public:
     float width = 1;
     float height = 1;
     
-    float velocity;
-    float direction_x;
-    float direction_y;
+    float x_scale = 1;
+    float y_scale = 1;
+    float speed = 1;
+    float direction_x = 0;
+    float direction_y = 0;
     float size = 1.0f;
     
+    bool alive = true;
     Entity(){}
     
     Entity(int input_type){
         type = input_type;
         if(type == 1){//Player
-            x_scale = 1;
-            y_scale = 1;
             y = -.8;
             
             u = 224.0f / 1024.0f;
             v = 832.0f / 1024.0f;
             width = 99.0f / 1024.0f;
             height = 75.0f / 1024.0f;
+            
+            speed = 50;
         }
         else if(type == 2){//Enemy
-            x_scale = 1;
-            y_scale = 1;
-            
             u = 425.0f / 1024.0f;
             v = 552.0f / 1024.0f;
             width = 93.0f / 1024.0f;
             height = 84.0f / 1024.0f;
+            
+            direction_x = 0.1;
         }
         else{//Bullet
+            u = 854.0f / 1024.0f;
+            v = 639.0f / 1024.0f;
+            width = 9.0f / 1024.0f;
+            height = 37.0f / 1024.0f;
+            
+            speed = 30;
+            x_scale = .5;
+            y_scale = .5;
         }
 
     };
@@ -203,14 +213,43 @@ public:
         glDisableVertexAttribArray(program.texCoordAttribute);
     }
     
+    void Update(){
+        x += direction_x * speed * elapsed;
+        y += direction_y * speed * elapsed;
+        
+        if(type == 3){
+            if(y < -1.2f || y > 1.2f){
+                direction_y = 0;
+                x = 2;
+                y = 0;
+            }
+        }
+    }
+    
+    bool clampX(){
+        if(x + width * x_scale > openGL_width || x - width * x_scale < -openGL_width){
+            return true;
+        }
+        return false;
+    }
+    
     void moveX(float x_input){
-        x += x_input;
+        x += x_input * elapsed * speed;
     }
     
     glm::mat4 player = glm::mat4(1.0f);
     
 
 };
+
+bool collide(Entity& bullet, Entity& enemy){
+    float x_distance = abs(bullet.x - enemy.x) - (bullet.width * bullet.x_scale * 2 + enemy.width * 2)/2;
+    float y_distance = abs(bullet.y - enemy.y) - (bullet.height *bullet.y_scale * 2 + enemy.height)/2;
+    if(x_distance < 0 && y_distance < bullet.width){
+        return true;
+    }
+    return false;
+}
 
 /*
  ===========================
@@ -236,24 +275,60 @@ public:
 class GameLevel {
 public:
     GameLevel(){
-        float width = -1.3f;
-        float spacing = 3;
-        for(int i = 0; i < 10; i++){
-            Entity tempEntity = *new Entity(2);
-            tempEntity.x += width;
-            std::cout << tempEntity.x << std::endl;
-            enemies.push_back(tempEntity);
-            width += tempEntity.width *spacing;
+        for(int j = 0; j < 2; j++){
+            float width = -1.3f;
+            float spacing = 3;
+            for(int i = 0; i < 10; i++){
+                Entity tempEntity = *new Entity(2);
+                tempEntity.x += width;
+                tempEntity.y += .8;
+                if(j == 1){
+                    tempEntity.y -= tempEntity.height * 3.2;
+                }
+                
+                enemies.push_back(tempEntity);
+                width += tempEntity.width *spacing;
+            }
+        }
+
+        for(int i = 0; i < 40; i++){
+            Entity tempEntity = *new Entity(3);
+            tempEntity.x = 2.0f;
+            tempEntity.y = 0.0f;
+            bullets.push_back(tempEntity);
         }
     };
     
     void Render(ShaderProgram &p) {
-        for(int i = 0; i < 10; i++){
-            enemies[i].Draw(p);
+        for(Entity& e: enemies){
+            if(e.alive){
+                e.Draw(p);
+            }
+        }
+        for(Entity& e: bullets){
+            e.Draw(p);
         }
         player.Draw(p);
     }
     void Update() {
+        for(Entity& e: enemies){
+            e.Update();
+            if(e.clampX() && e.alive){
+                for(Entity& a: enemies){
+                    a.direction_x = -1 * a.direction_x;
+                    a.y -= a.height;
+                }
+            }
+        }
+        for(Entity& e: bullets){
+            e.Update();
+            for(Entity& enemy: enemies){
+                if(collide(e, enemy)){
+                    enemy.alive = false;
+                }
+            }
+        }
+        player.Update();
         glClear(GL_COLOR_BUFFER_BIT);
     }
     void Process() {
@@ -267,9 +342,24 @@ public:
             if(event.key.keysym.scancode == SDL_SCANCODE_A) {
                 player.moveX(-0.1f);
             }
+            if(event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+                bullets[bulletCounter].x = player.x;
+                bullets[bulletCounter].y = player.y;
+                bullets[bulletCounter].y += player.height *1.01;
+                bullets[bulletCounter].direction_y = 0.1;
+                if (bulletCounter < bullets.size() - 1){
+                    bulletCounter += 1;
+                }
+                else{
+                    bulletCounter = 0;
+                }
+            }
         }
     }
+    
+    int bulletCounter = 0;
     std::vector<Entity> enemies;
+    std::vector<Entity> bullets;
     Entity player = Entity(1);
     int score;
 };
@@ -281,6 +371,8 @@ public:
  Functions
  ===========================
  */
+
+
 
 /*
  ===========================
@@ -300,10 +392,10 @@ GameLevel gameLevel;
 
 void Startup(){
     SDL_Init(SDL_INIT_VIDEO);
-    displayWindow = SDL_CreateWindow("My Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
+    displayWindow = SDL_CreateWindow("My Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
     SDL_GLContext context = SDL_GL_CreateContext(displayWindow);
     SDL_GL_MakeCurrent(displayWindow, context);
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, WIDTH, HEIGHT);
     program.Load(RESOURCE_FOLDER"vertex_textured.glsl", RESOURCE_FOLDER"fragment_textured.glsl");
     projectionMatrix = glm::mat4(1.0f);
     viewMatrix = glm::mat4(1.0f);
@@ -356,6 +448,11 @@ void ProcessEvents(){
 
 
 void Update(){
+    //Timer:
+    float ticks = (float)SDL_GetTicks()/1000.0f;
+    elapsed = ticks - lastFrameTicks;
+    lastFrameTicks = ticks;
+    
     switch(mode) {
         case STATE_MAIN_MENU:
             mainMenu.Update();
