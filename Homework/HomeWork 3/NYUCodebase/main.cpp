@@ -43,6 +43,10 @@ float texCoords[] = {0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0}
 
 float lastFrameTicks = 0.0f;
 float elapsed = 0.0f;
+
+GLuint fontTexture;
+enum GameMode { STATE_MAIN_MENU, STATE_GAME_LEVEL};
+GameMode mode;
 /*
  ===========================
  Textures
@@ -73,11 +77,12 @@ GLuint LoadTexture(const char *filePath) {
     return retTexture;
 }
 
-void DrawText(ShaderProgram* program, int fontTexture, std::string text, float size, float spacing) {
+void DrawText(ShaderProgram &program, int fontTexture, std::string text, float x, float y, float size, float spacing) {
     float texture_size = 1.0 / 16.0f;
     std::vector<float> vertexData;
     std::vector<float> texCoordData;
-    
+    glm::mat4 textModelMatrix = glm::mat4(1.0f);
+    textModelMatrix = glm::translate(textModelMatrix, glm::vec3(x, y, 1.0f));
     for (size_t i = 0; i < text.size(); i++) {
         float texture_x = (float)(((int)text[i]) % 16) / 16.0f;
         float texture_y = (float)(((int)text[i]) / 16) / 16.0f;
@@ -98,19 +103,20 @@ void DrawText(ShaderProgram* program, int fontTexture, std::string text, float s
             texture_x, texture_y + texture_size,
         });
     }
-    glUseProgram(program->programID);
+    glUseProgram(program.programID);
+    program.SetModelMatrix(textModelMatrix);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    glVertexAttribPointer(program->positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
-    glEnableVertexAttribArray(program->positionAttribute);
-    glVertexAttribPointer(program->texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
-    glEnableVertexAttribArray(program->texCoordAttribute);
+    glVertexAttribPointer(program.positionAttribute, 2, GL_FLOAT, false, 0, vertexData.data());
+    glEnableVertexAttribArray(program.positionAttribute);
+    glVertexAttribPointer(program.texCoordAttribute, 2, GL_FLOAT, false, 0, texCoordData.data());
+    glEnableVertexAttribArray(program.texCoordAttribute);
     glBindTexture(GL_TEXTURE_2D, fontTexture);
     glDrawArrays(GL_TRIANGLES, 0, text.size() * 6);
     
-    glDisableVertexAttribArray(program->positionAttribute);
-    glDisableVertexAttribArray(program->texCoordAttribute);
+    glDisableVertexAttribArray(program.positionAttribute);
+    glDisableVertexAttribArray(program.texCoordAttribute);
 }
 
 /*
@@ -259,11 +265,20 @@ bool collide(Entity& bullet, Entity& enemy){
 class MainMenu {
 public:
     void Render(ShaderProgram &p) {
-        
+        DrawText(p, fontTexture, "Space Invader by Justin Lin", -1.35,0,0.1, .01);
     }
     void Update() {
+        glClear(GL_COLOR_BUFFER_BIT);
     }
     void Process() {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT || event.type == SDL_WINDOWEVENT_CLOSE) {
+                loop = true;
+            }
+            if(event.key.keysym.scancode == SDL_SCANCODE_SPACE) {
+                mode = STATE_GAME_LEVEL;
+            }
+        }
     }
 };
 
@@ -379,8 +394,7 @@ public:
  Global Variables
  ===========================
  */
-enum GameMode { STATE_MAIN_MENU, STATE_GAME_LEVEL};
-GameMode mode;
+
 MainMenu mainMenu;
 GameLevel gameLevel;
 
@@ -422,12 +436,14 @@ void Startup(){
      ===========================
      */
     spriteSheetTexture = LoadTexture(RESOURCE_FOLDER"sheet.png");
+    fontTexture = LoadTexture(RESOURCE_FOLDER"pixel_font.png");
     /*
      ===========================
      Set up GameStates
      ===========================
      */
-    mode = STATE_GAME_LEVEL;
+    //mode = STATE_GAME_LEVEL;
+    mode = STATE_MAIN_MENU;
     
 #ifdef _WINDOWS
     glewInit();
