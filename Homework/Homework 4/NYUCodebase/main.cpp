@@ -151,6 +151,10 @@ void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY) 
     *gridY = (int)(worldY / -tileSize);
 }
 
+float lerp(float v0, float v1, float t) {
+    return (1.0-t)*v0 + t*v1;
+}
+
 
 
 /*
@@ -178,7 +182,12 @@ public:
     float direction_x = 0;
     float direction_y = 0;
     float size = 1.0f;
-    float gravity = -.005f;
+    float gravity = -2.0f;
+    
+    float friction_x = 0.5f;
+    float friction_y = 0.5f;
+    float acceleration_x = 0.0f;
+    float acceleration_y = 0.0f;
     
     bool alive = true;
     bool collidedBottom = false;
@@ -187,7 +196,7 @@ public:
     Entity(int input_type){
         type = input_type;
         if(type == 1){//Player
-            y = -.8;
+            y = -1.0f;
             x = 2.0f;
             
             u = 224.0f / 1024.0f;
@@ -256,11 +265,22 @@ public:
     }
     
     void Update(){
-        x += direction_x * speed * elapsed;
-        y += direction_y * speed * elapsed;
+        
+        direction_x = lerp(direction_x, 0.0f, elapsed * friction_x);
+        direction_y = lerp(direction_y, 0.0f, elapsed * friction_y);
+        direction_x += acceleration_x * elapsed;
+        direction_y += acceleration_y * elapsed;
+        x += direction_x * elapsed;
+        y += direction_y * elapsed;
+        
+//        x += direction_x * speed * elapsed;
+//        y += direction_y * speed * elapsed;
         
         if(!collidedBottom && type == 1){
-            y += gravity;
+            direction_y += gravity * elapsed;
+        }
+        else{
+            direction_y = 0;
         }
 
         viewMatrix = glm::mat4(1.0f);
@@ -276,11 +296,11 @@ public:
     }
     
     void moveX(float x_input){
-        x += x_input * elapsed * speed;
+        direction_x += x_input * elapsed * speed;
     }
     
     void moveY(float y_input){
-        y += y_input * elapsed * speed;
+        direction_y += y_input * elapsed * speed;
     }
     
     glm::mat4 player = glm::mat4(1.0f);
@@ -306,7 +326,7 @@ bool collide(Entity& bullet, Entity& enemy){
 class MainMenu {
 public:
     void Render(ShaderProgram &p) {
-        DrawText(p, fontTexture, "Derpy Floaty Ship the most useless game", -1,0,0.1, .01);
+        DrawText(p, fontTexture, "Derpy Floaty Ship", -1,0,0.1, .01);
     }
     void Update() {
         glClear(GL_COLOR_BUFFER_BIT);
@@ -338,7 +358,7 @@ public:
             if(i == 1){
                 tempEntity.x += 0.5;
             }
-            tempEntity.y = -0.8f;
+            tempEntity.y = -4.5f;
             bullets.push_back(tempEntity);
         }
     };
@@ -393,7 +413,7 @@ public:
                 player.moveX(-0.1f);
             }
             if(event.key.keysym.scancode == SDL_SCANCODE_W) {
-                player.moveY(0.2f);
+                player.moveY(0.5f);
             }
         }
     }
