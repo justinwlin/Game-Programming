@@ -12,9 +12,6 @@
 		5F9FBD57219945DA0008F5FE /* FlareMap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5F9FBD55219945DA0008F5FE /* FlareMap.cpp */; };
 		5F9FBD5B219950B40008F5FE /* testSheet.png in Resources */ = {isa = PBXBuildFile; fileRef = 5F9FBD5A219950B30008F5FE /* testSheet.png */; };
 		5FEAE33C219A029600403B4C /* test.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FEAE33B219A029600403B4C /* test.txt */; };
-		5FF7BA0F2199E01F00BB9FC0 /* testPlatform2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FF7BA0E2199E01F00BB9FC0 /* testPlatform2.txt */; };
-		5FF7BA112199E1B300BB9FC0 /* testMap.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FF7BA102199E1B200BB9FC0 /* testMap.txt */; };
-		5FF7BA132199E45E00BB9FC0 /* testPlatform2.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5FF7BA122199E45E00BB9FC0 /* testPlatform2.txt */; };
 		6D5A86AE19AE5C710066C1FD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D5A86AD19AE5C710066C1FD /* Cocoa.framework */; };
 		6D5A86B819AE5C710066C1FD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6D5A86B619AE5C710066C1FD /* InfoPlist.strings */; };
 		6D5A86BA19AE5C710066C1FD /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D5A86B919AE5C710066C1FD /* main.cpp */; };
@@ -37,9 +34,6 @@
 		5F9FBD56219945DA0008F5FE /* FlareMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlareMap.h; sourceTree = "<group>"; };
 		5F9FBD5A219950B30008F5FE /* testSheet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = testSheet.png; sourceTree = SOURCE_ROOT; };
 		5FEAE33B219A029600403B4C /* test.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.txt; sourceTree = SOURCE_ROOT; };
-		5FF7BA0E2199E01F00BB9FC0 /* testPlatform2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testPlatform2.txt; sourceTree = SOURCE_ROOT; };
-		5FF7BA102199E1B200BB9FC0 /* testMap.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testMap.txt; sourceTree = SOURCE_ROOT; };
-		5FF7BA122199E45E00BB9FC0 /* testPlatform2.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = testPlatform2.txt; sourceTree = SOURCE_ROOT; };
 		6D5A86AA19AE5C710066C1FD /* NYUCodebase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NYUCodebase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D5A86AD19AE5C710066C1FD /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		6D5A86B019AE5C710066C1FD /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -147,9 +141,6 @@
 				5F3F94F1217BAC0F00A29AC7 /* sheet.png */,
 				5F9FBD55219945DA0008F5FE /* FlareMap.cpp */,
 				5F9FBD56219945DA0008F5FE /* FlareMap.h */,
-				5FF7BA0E2199E01F00BB9FC0 /* testPlatform2.txt */,
-				5FF7BA102199E1B200BB9FC0 /* testMap.txt */,
-				5FF7BA122199E45E00BB9FC0 /* testPlatform2.txt */,
 				5FEAE33B219A029600403B4C /* test.txt */,
 				6D5A86B919AE5C710066C1FD /* main.cpp */,
 				5F9FBD5A219950B30008F5FE /* testSheet.png */,
@@ -214,10 +205,7 @@
 				6D5A86B819AE5C710066C1FD /* InfoPlist.strings in Resources */,
 				5F3F94F2217BAC0F00A29AC7 /* sheet.png in Resources */,
 				6DEF23C11B96CC2600BCE792 /* fragment.glsl in Resources */,
-				5FF7BA132199E45E00BB9FC0 /* testPlatform2.txt in Resources */,
-				5FF7BA0F2199E01F00BB9FC0 /* testPlatform2.txt in Resources */,
 				6DE9D2F11BA6AB8C002D599C /* fragment_textured.glsl in Resources */,
-				5FF7BA112199E1B300BB9FC0 /* testMap.txt in Resources */,
 				6D5A86C619AE5C710066C1FD /* Images.xcassets in Resources */,
 				5F9FBD5B219950B40008F5FE /* testSheet.png in Resources */,
 				6D5A86BE19AE5C710066C1FD /* Credits.rtf in Resources */,
