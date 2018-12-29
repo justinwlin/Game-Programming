@@ -229,40 +229,7 @@ bool playerCollideBottom(){
     entities[0].collidedBottom = false;
     return false;
 }
-bool playerCollideTop(){
-    int gridX =0;
-    int gridY = 0;
-    
-    gridX = (int)(entities[0].position.x / tilesize);
-    gridY = (int)((entities[0].position.y + (tilesize / 2)) / -tilesize);
-    if(gridX < map.mapWidth && gridY < map.mapHeight){
-        for(int solidBlocks: solids){
-            if(map.mapData[gridY][gridX] == solidBlocks){
-                entities[0].position.y -= fabs(((-tilesize * gridY) -tilesize) - (entities[0].position.y + tilesize/2))+.001;
-                return true;
-            }
-        }
-    }
-    entities[0].collidedBottom = false;
-    return false;
-}
-bool playerCollideLeft(){
-    int gridX =0;
-    int gridY = 0;
-    
-    gridX = (int)((entities[0].position.x - (tilesize / 2))/ tilesize);
-    gridY = (int)(entities[0].position.y / -tilesize);
-    if(gridX < map.mapWidth && gridY < map.mapHeight){
-        for(int solidBlocks: solids){
-            if(map.mapData[gridY][gridX] == solidBlocks){
-                entities[0].position.x += fabs(((tilesize * gridX) +tilesize) - (entities[0].position.x - tilesize/2))+.001;
-                return true;
-            }
-        }
-    }
-    entities[0].collidedBottom = false;
-    return false;
-}
+
 bool playerCollideRight(){
     int gridX =0;
     int gridY = 0;
@@ -297,6 +264,42 @@ bool eCollisionBottom(Entity& e){
     e.collidedBottom = false;
     return false;
 }
+
+bool playerCollideTop(){
+    int gridX =0;
+    int gridY = 0;
+    
+    gridX = (int)(entities[0].position.x / tilesize);
+    gridY = (int)((entities[0].position.y + (tilesize / 2)) / -tilesize);
+    if(gridX < map.mapWidth && gridY < map.mapHeight){
+        for(int solidBlocks: solids){
+            if(map.mapData[gridY][gridX] == solidBlocks){
+                entities[0].position.y -= fabs(((-tilesize * gridY) -tilesize) - (entities[0].position.y + tilesize/2))+.001;
+                return true;
+            }
+        }
+    }
+    entities[0].collidedBottom = false;
+    return false;
+}
+bool playerCollideLeft(){
+    int gridX =0;
+    int gridY = 0;
+    
+    gridX = (int)((entities[0].position.x - (tilesize / 2))/ tilesize);
+    gridY = (int)(entities[0].position.y / -tilesize);
+    if(gridX < map.mapWidth && gridY < map.mapHeight){
+        for(int solidBlocks: solids){
+            if(map.mapData[gridY][gridX] == solidBlocks){
+                entities[0].position.x += fabs(((tilesize * gridX) +tilesize) - (entities[0].position.x - tilesize/2))+.001;
+                return true;
+            }
+        }
+    }
+    entities[0].collidedBottom = false;
+    return false;
+}
+
 bool eCollisionTop(Entity& e){
     int gridX =0;
     int gridY = 0;
