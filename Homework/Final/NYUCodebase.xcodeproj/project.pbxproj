@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5F0A87D621D6B1DD00EA5160 /* untitled3.txt in Resources */ = {isa = PBXBuildFile; fileRef = 5F0A87D521D6B1DD00EA5160 /* untitled3.txt */; };
 		5F0A87D821D6FC9800EA5160 /* epic.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 5F0A87D721D6FC9800EA5160 /* epic.mp3 */; };
+		5FDAB8A521D70449000ED558 /* hurt.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5FDAB8A421D70449000ED558 /* hurt.wav */; };
 		6D5A86AE19AE5C710066C1FD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D5A86AD19AE5C710066C1FD /* Cocoa.framework */; };
 		6D5A86B819AE5C710066C1FD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6D5A86B619AE5C710066C1FD /* InfoPlist.strings */; };
 		6D5A86BA19AE5C710066C1FD /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D5A86B919AE5C710066C1FD /* main.cpp */; };
@@ -34,6 +35,7 @@
 		5F0A87D521D6B1DD00EA5160 /* untitled3.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = untitled3.txt; sourceTree = "<group>"; };
 		5F0A87D721D6FC9800EA5160 /* epic.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = epic.mp3; sourceTree = "<group>"; };
 		5F0A87DB21D700D000EA5160 /* Entity.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Entity.hpp; sourceTree = "<group>"; };
+		5FDAB8A421D70449000ED558 /* hurt.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = hurt.wav; sourceTree = "<group>"; };
 		6D5A86AA19AE5C710066C1FD /* NYUCodebase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NYUCodebase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D5A86AD19AE5C710066C1FD /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		6D5A86B019AE5C710066C1FD /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -154,6 +156,7 @@
 				6DEF23C01B96CC2600BCE792 /* vertex.glsl */,
 				5F0A87D521D6B1DD00EA5160 /* untitled3.txt */,
 				6D5A86B919AE5C710066C1FD /* main.cpp */,
+				5FDAB8A421D70449000ED558 /* hurt.wav */,
 				5F0A87D721D6FC9800EA5160 /* epic.mp3 */,
 				A69F92D62178031E007808D1 /* Entity.cpp */,
 				5F0A87DB21D700D000EA5160 /* Entity.hpp */,
@@ -227,6 +230,7 @@
 				A6229B2421754FF000BF0558 /* sheet.png in Resources */,
 				A6A9B9CF217FDE44004C860A /* pixel_font.png in Resources */,
 				6DEF23C41B96CC2600BCE792 /* vertex.glsl in Resources */,
+				5FDAB8A521D70449000ED558 /* hurt.wav in Resources */,
 				6DC7076A1BA7273500225B7D /* vertex_textured.glsl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

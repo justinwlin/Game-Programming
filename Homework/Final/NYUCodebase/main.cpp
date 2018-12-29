@@ -40,6 +40,8 @@ ShaderProgram texteredShader;
 std::vector<Entity> entities;
 std::vector<Enemy> enemies;
 
+Mix_Chunk *hurt;
+
 int health = 3;
 
 float startX = 0;
@@ -233,6 +235,7 @@ bool playerCollideBottom(){
                     if(hurtTime<0){
                         health--;
                         hurtTime = 3;
+                        Mix_PlayChannel( -1, hurt, 0);
                     }
                 }
                 entities[0].collidedBottom = true;
@@ -555,6 +558,8 @@ class Game{
                 health--;
                 hurtTime = 1.0;
                 e.position.x=-10000;
+                Mix_PlayChannel( -1, hurt, 0);
+
             }
             e.update(elapsedUpdate);
         }
@@ -680,6 +685,7 @@ int main(int argc, char *argv[])
     
     Mix_Music *music;
     music = Mix_LoadMUS("epic.mp3");
+    hurt = Mix_LoadWAV("hurt.wav");
     
     Mix_VolumeMusic(30);
     Mix_PlayMusic(music, -1);
