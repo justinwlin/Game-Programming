@@ -66,14 +66,10 @@ float tilesize = .1;
 float scale = .1;
 FlareMap map;
 std::vector<int> solids = {17, 33, 34, 35, 32, 1, 3, 100, 101};
-
-//Physics
 float gravity = .017f;
 bool canJump = false;
 float jumpPower = .9;
 int jumps = 2;
-
-//Time
 float elapsed;
 float accumulator = 0.0f;
 float lastFrameTicks = 0.0f;
@@ -483,8 +479,6 @@ class Game{
             }
             changeLevel = false;
         }
-
-        //Movement
         modelMatrix = glm::mat4(1.0f);
         const Uint8 *keys = SDL_GetKeyboardState(NULL);
         if(keys[SDL_SCANCODE_A]) {
