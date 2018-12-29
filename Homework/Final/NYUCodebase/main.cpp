@@ -14,7 +14,6 @@
 #include "FlareMap.h"
 #include "Enemy.hpp"
 
-
 #ifdef _WINDOWS
 #define RESOURCE_FOLDER ""
 #else
@@ -41,35 +40,25 @@ std::vector<Entity> entities;
 std::vector<Enemy> enemies;
 
 Mix_Chunk *hurt;
-
 int health = 3;
-
 float startX = 0;
 float startY = 0;
-
 float startX2 = 0;
 float startY2 = 0;
-
 float startX3 = 0;
 float startY3 = 0;
-
 int score = 0;
 float hurtTime = 1.0;
 int level = 1;
 int pID = 80;
 float playermotion = .1;
-
 bool changeLevel = false;
-
 GLuint fontTexture;
-
 enum GameMode { STATE_MAIN_MENU, STATE_GAME_LEVEL, STATE_GAME_OVER};
 GameMode mode = STATE_MAIN_MENU;
-
 std::vector<Entity> respawn;
 std::vector<float> vertexData;
 std::vector<float> texCoordData;
-
 //Sprite
 int sc_x = 16;
 int sc_y = 8;
@@ -89,8 +78,6 @@ float elapsed;
 float accumulator = 0.0f;
 float lastFrameTicks = 0.0f;
 
-//Sound
-
 SDL_Window* displayWindow;
 
 GLuint LoadTexture(const char *filePath) {
@@ -109,7 +96,6 @@ GLuint LoadTexture(const char *filePath) {
     stbi_image_free(image);
     return retTexture;
 }
-
 void motionPlayer(){
     if(pID == 80){
         pID = 81;
@@ -120,7 +106,6 @@ void motionPlayer(){
     entities[0].sprite.u = (float)(((int)pID) % sc_x) / (float) sc_x;
     entities[0].sprite.v = (float)(((int)pID) / sc_x) / (float) sc_y;
 }
-
 void DrawText(ShaderProgram &program, int fontTexture, std::string text, float x, float y, float size, float spacing) {
     float texture_size = 1.0 / 16.0f;
     std::vector<float> vertexData;
@@ -162,7 +147,6 @@ void DrawText(ShaderProgram &program, int fontTexture, std::string text, float x
     glDisableVertexAttribArray(program.positionAttribute);
     glDisableVertexAttribArray(program.texCoordAttribute);
 }
-
 void renderEntities(){
     for(FlareMapEntity e: map.entities){
         if(e.type == "enemy"){
@@ -198,7 +182,6 @@ void renderEntities(){
         }
     }
 }
-
 void drawMap(){
     
     glUseProgram(texteredShader.programID);
@@ -216,12 +199,10 @@ void drawMap(){
     glDisableVertexAttribArray(texteredShader.positionAttribute);
     glDisableVertexAttribArray(texteredShader.texCoordAttribute);
 }
-
 void worldToTileCoordinates(float worldX, float worldY, int *gridX, int *gridY) {
     *gridX = (int)(worldX / tilesize);
     *gridY = (int)(worldY / -tilesize);
 }
-
 bool playerCollideBottom(){
     int gridX =0;
     int gridY = 0;
@@ -298,8 +279,6 @@ bool playerCollideRight(){
     }
     return false;
 }
-
-
 bool eCollisionBottom(Entity& e){
     int gridX =0;
     int gridY = 0;
@@ -318,11 +297,9 @@ bool eCollisionBottom(Entity& e){
     e.collidedBottom = false;
     return false;
 }
-
 bool eCollisionTop(Entity& e){
     int gridX =0;
     int gridY = 0;
-    
     gridX = (int)(e.position.x / tilesize);
     gridY = (int)((e.position.y + (tilesize / 2)) / -tilesize);
     if(gridX < map.mapWidth && gridY < map.mapHeight){
@@ -341,7 +318,6 @@ bool eCollisionTop(Entity& e){
 bool eCollisionLeft(Entity& e){
     int gridX =0;
     int gridY = 0;
-    
     gridX = (int)((e.position.x - (tilesize / 2))/ tilesize);
     gridY = (int)(e.position.y / -tilesize);
     if(gridX < map.mapWidth && gridY < map.mapHeight){
@@ -360,7 +336,6 @@ bool eCollisionLeft(Entity& e){
 bool eCollisionRight(Entity& e){
     int gridX =0;
     int gridY = 0;
-    
     gridX = (int)((e.position.x + (tilesize / 2))/ tilesize);
     gridY = (int)(e.position.y / -tilesize);
     if(gridX < map.mapWidth && gridY < map.mapHeight){
@@ -703,7 +678,6 @@ int main(int argc, char *argv[])
             elapsed -= FIXED_TIMESTEP;
         }
         accumulator = elapsed;
-
         ProcessEvents();
         Update();
         Render();
